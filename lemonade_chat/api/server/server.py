@@ -155,7 +155,7 @@ def view(email):
 
 
 @app.errorhandler(exceptions.ApiException)
-def handle_invalid_usage(error):
+def handle_api_exception(error):
     res = jsonify({
         'message': str(error),
         'code': error.message_code
