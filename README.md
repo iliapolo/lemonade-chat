@@ -14,7 +14,7 @@ pip install https://github.com/iliapolo/lemonade-chat/archive/master.zip
 - You must install this package inside a Python3.6 environment.
 - You might need to prefix the command with *sudo*, in case you are not using a virtual environment
 
-### binary
+### binary (MacOS only)
 
 You can also simply download one self-contained binary executable:
 
@@ -84,8 +84,10 @@ Welcome to Lemonade!
 What is your email address?:
 ```
 
-Type in your email address and you will all your registration details.
+Type in your email address and you will see all your registration details.
 
 * If you started the server on a custom port, use the **--server-port** option to let the client 
 know.
+
+* You can exit the client at any point by pressing CTRL+C
 
