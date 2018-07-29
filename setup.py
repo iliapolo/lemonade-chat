@@ -43,7 +43,7 @@ setup(
     install_requires=[
         'click==6.7',
         'Flask==1.0.2',
-        'requests==2.19.1',
+        'requests==2.18.4',
         'prettytable==0.7.2'
     ]
 )
