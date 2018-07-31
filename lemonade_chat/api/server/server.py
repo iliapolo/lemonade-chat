@@ -26,6 +26,7 @@ from werkzeug.local import LocalProxy
 from lemonade_chat.api.server import exceptions
 from lemonade_chat.api.server import utils
 from lemonade_chat.api.server.users import Users
+from lemonade_chat.api.server import questions
 
 
 app = Flask(__name__)
@@ -43,21 +44,13 @@ def get_users():
 users = LocalProxy(get_users)
 
 
-QUESTIONS = {
-    'age': 'What is your age? (18-120)',
-    'gender': 'What is your gender? (m/f)',
-    'name': 'What is your name?',
-    'email': 'What is your email address?'
-}
-
-
 @app.route('/welcome')
 def welcome():
 
     return response(
         {
             'is_over': False,
-            'text': 'Welcome to Lemonade!\n\n{}'.format(QUESTIONS['email'])
+            'text': 'Welcome to Lemonade!\n\nWhat is your email address'
         }
     )
 
@@ -74,31 +67,16 @@ def identify():
     except exceptions.UserAlreadyExistsException:
         pass
 
-    user = users.get(email)
+    question = questions.start_for(email, users)
 
-    if not user.name:
-        return response(
-            {
+    while question:
+        if not question.is_answered():
+            return response({
                 'is_over': False,
-                'text': QUESTIONS['name']
-            }
-        )
+                'text': question.ask()
+            })
 
-    if not user.gender:
-        return response(
-            {
-                'is_over': False,
-                'text': QUESTIONS['gender']
-            }
-        )
-
-    if not user.age:
-        return response(
-            {
-                'is_over': False,
-                'text': QUESTIONS['age']
-            }
-        )
+        question = question.next()
 
     return response(
         {
@@ -116,34 +94,26 @@ def exchange():
     email = data['email']
     answer = data['answer']
 
-    user = users.get(email)
+    question = questions.start_for(email, users)
 
-    if not user.name:
-        users.update_name(email, answer)
-        return response(
-            {
-                'is_over': False,
-                'text': QUESTIONS['gender']
-            }
-        )
+    while question:
+        if not question.is_answered():
+            question.answer(answer)
 
-    if not user.gender:
-        users.update_gender(email, answer)
-        return response(
-            {
-                'is_over': False,
-                'text': QUESTIONS['age']
-            }
-        )
+            if question.next():
+                return response({
+                    'is_over': False,
+                    'text': question.next().ask()
+                })
+            break
+        question = question.next()
 
-    if not user.age:
-        users.update_age(email, answer)
-        return response(
-            {
-                'is_over': True,
-                'text': 'You successfully registered for lemonade, thanks!'
-            }
-        )
+    return response(
+        {
+            'is_over': True,
+            'text': 'You successfully registered for lemonade, thanks!'
+        }
+    )
 
 
 @app.route('/users/<email>')
